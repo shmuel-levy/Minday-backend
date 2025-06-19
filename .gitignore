@@ -1,10 +1,2 @@
-node_modules/
-.env
-logs/
-*.log
-.DS_Store
-Thumbs.db
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-public/assets/
+node_modules
+logs
