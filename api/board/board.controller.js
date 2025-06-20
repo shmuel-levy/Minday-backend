@@ -3,17 +3,23 @@ import { socketService } from '../../services/socket.service.js'
 import { boardService } from './board.service.js'
 
 export async function getBoards(req, res) {
-	console.log('get boards ', req);
-	
-	const { loggedinUser = {} } = req
-	const account = loggedinUser?.account || ''
-	try {
-		const boards = await boardService.query(account)
-		res.json(boards)
-	} catch (err) {
-		logger.error('Failed to get boards', err)
-		res.status(400).send({ err: 'Failed to get boards' })
-	}
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const account = loggedinUser?.account || ''
+    console.log('Looking for account:', account) // Debug line
+    
+    try {
+        const boards = await boardService.query(account)
+        console.log('Found boards count:', boards.length) // Debug line
+        console.log('First board name:', boards[0]?.name) // Debug line
+        res.json(boards)
+    } catch (err) {
+        logger.error('Failed to get boards', err)
+        res.status(400).send({ err: 'Failed to get boards' })
+    }
 }
 
 export async function getBoardById(req, res) {
@@ -45,19 +51,20 @@ export async function saveBoards(req, res) {
 }
 
 export async function createBoard(req, res) {
-	const { loggedinUser, body: board } = req
-	try {
-		const {miniBoards, newBoard} = await boardService.add(board, loggedinUser)
-
-		if(miniBoards) {
-			socketService.broadcast({ type:'mini-boards-update', data: miniBoards, userId: loggedinUser._id})
-		}
-
-		res.json(newBoard)
-	} catch (err) {
-		logger.error('Failed to add board', err)
-		res.status(400).send({ err: 'Failed to add board' })
-	}
+    // Mock user for testing when auth is disabled
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const board = req.body
+    try {
+        const {miniBoards, newBoard} = await boardService.add(board, loggedinUser)
+        res.json(newBoard)
+    } catch (err) {
+        logger.error('Failed to add board', err)
+        res.status(400).send({ err: 'Failed to add board' })
+    }
 }
 
 export async function removeBoard(req, res) {
@@ -78,41 +85,41 @@ export async function removeBoard(req, res) {
 }
 
 export async function updateBoard(req, res) {
-	const { loggedinUser, body: board } = req
+    // Mock user for testing
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const board = req.body
 
-	try {
-		const updatedBoard = await boardService.update(board)
-
-		if(updatedBoard) {
-			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
-		}
-
-		res.status(200).json(updatedBoard)
-	} catch (err) {
-		logger.error('Failed to update board', err)
-		res.status(400).send({ err: 'Failed to update board' })
-	}
+    try {
+        const updatedBoard = await boardService.update(board)
+        res.status(200).json(updatedBoard)
+    } catch (err) {
+        logger.error('Failed to update board', err)
+        res.status(400).send({ err: 'Failed to update board' })
+    }
 }
-
 export async function createGroup(req, res) {
-	const { loggedinUser, body } = req
-	const { boardId } = req.params
-	const isTop = body.isTop
-	const idx = body.idx
-	const group = body.group
-	
-	try {
-		const updatedBoard = await boardService.createGroup(group, boardId, isTop, idx, loggedinUser)
-
-		if(updatedBoard) {
-			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
-		}
-
-		res.status(200).json(updatedBoard)
-	} catch (err) {
-		logger.error('Failed to add group', err)
-		res.status(400).send({ err: 'Failed to add group' })
-	}
+    // Mock user for testing
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const { boardId } = req.params
+    const isTop = req.body.isTop
+    const idx = req.body.idx
+    const group = req.body.group
+    
+    try {
+        const updatedBoard = await boardService.createGroup(group, boardId, isTop, idx, loggedinUser)
+        res.status(200).json(updatedBoard)
+    } catch (err) {
+        logger.error('Failed to add group', err)
+        res.status(400).send({ err: 'Failed to add group' })
+    }
 }
 
 export async function updateGroup(req, res) {
@@ -265,25 +272,23 @@ export async function removeLabel(req, res) {
 
 
 export async function createTask(req, res) {
-	const { loggedinUser, body } = req
-	const { boardId, groupId } = req.params
-	const isTop = body.isTop
-	const task = body.task
-	console.log('groupId: ', groupId)
-	console.log('boardId: ', boardId)
+    // Mock user for testing
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const { boardId, groupId } = req.params
+    const isTop = req.body.isTop
+    const task = req.body.task
 
-	try {
-		const updatedBoard = await boardService.createTask(task, boardId, groupId, isTop, loggedinUser)
-
-		if(updatedBoard) {
-			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
-		}
-
-		res.status(200).json(updatedBoard)
-	} catch (err) {
-		logger.error('Failed to add task', err)
-		res.status(400).send({ err: 'Failed to add task' })
-	}
+    try {
+        const updatedBoard = await boardService.createTask(task, boardId, groupId, isTop, loggedinUser)
+        res.status(200).json(updatedBoard)
+    } catch (err) {
+        logger.error('Failed to add task', err)
+        res.status(400).send({ err: 'Failed to add task' })
+    }
 }
 
 export async function removeTask(req, res) {

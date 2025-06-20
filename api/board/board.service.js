@@ -35,22 +35,18 @@ export const boardService = {
 }
 
 async function query(account) {
-	try {
-		// const criteria = _buildCriteria(account)
-
-		const collection = await dbService.getCollection('board')
-
-		const boards = await collection.find({}).toArray()
-			// .sort({ pos: 1 }) 
-			// .project({ _id: 1, name: 1, isStarred: 1 })
-			// .toArray()
-
-		return boards
-
-	} catch (err) {
-		logger.error('cannot find boards', err)
-		throw err
-	}
+    try {
+        const collection = await dbService.getCollection('board')
+        
+        // Debug: try without account filter first
+        const boards = await collection.find({}).toArray()
+        console.log('All boards in DB:', boards.length)
+        
+        return boards
+    } catch (err) {
+        logger.error('cannot find boards', err)
+        throw err
+    }
 }
 
 async function getById(boardId) {
