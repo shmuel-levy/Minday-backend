@@ -19,14 +19,13 @@ async function getCollection(collectionName) {
 }
 
 async function _connect() {
-	if (dbConn) return dbConn
+    if (dbConn) return dbConn
     
-	try {
-		const client = await MongoClient.connect(config.dbURL)
-		// const client = await MongoClient.connect('mongodb://localhost:27017')
-		return dbConn = client.db('boardDB')
-	} catch (err) {
-		logger.error('Cannot Connect to DB', err)
-		throw err
-	}
+    try {
+        const client = await MongoClient.connect(config.dbURL)
+        return dbConn = client.db(config.dbName) // Use config.dbName instead of hardcoded 'boardDB'
+    } catch (err) {
+        logger.error('Cannot Connect to DB', err)
+        throw err
+    }
 }
