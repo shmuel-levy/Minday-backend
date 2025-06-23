@@ -31,13 +31,12 @@ async function query(filterBy = {}) {
 
 async function getById(userId) {//filter last visited boards based on date
     try {
-
         const collection = await dbService.getCollection('user')
-        const user = await collection.findOne({ _id: ObjectId.createFromHexString(userId) })
+        // const user = await collection.findOne({ _id: ObjectId.createFromHexString(userId) })
+        const user = await collection.findOne({ _id: new ObjectId(userId) })
         if (!user) throw new Error('User not found')
         delete user.password
-
-        
+                  
         return user
     } catch (err) {
         logger.error(`while finding user by id: ${userId}`, err)
@@ -58,8 +57,8 @@ async function getByEmail(email) {
 async function remove(userId) {
     try {
         const collection = await dbService.getCollection('user')
-
-        await collection.deleteOne({ _id: ObjectId.createFromHexString(userId) })
+        // await collection.deleteOne({ _id: ObjectId.createFromHexString(userId) })
+        await collection.deleteOne({ _id: new ObjectId(userId) })
     } catch (err) {
         logger.error(`cannot remove user ${userId}`, err)
         throw err
@@ -67,10 +66,10 @@ async function remove(userId) {
 }
 
 async function update(viewedBoardId, userId) {
-    
     try {
         const collection = await dbService.getCollection('user')
-        const user = await collection.findOne({ _id: ObjectId.createFromHexString(userId) })
+        // const user = await collection.findOne({ _id: ObjectId.createFromHexString(userId) })
+        const user = await collection.findOne({ _id: new ObjectId(userId) })
         if (!user) throw new Error('User not found')
 
         let lastViewedBoards = user.lastViewedBoards || []
@@ -82,8 +81,9 @@ async function update(viewedBoardId, userId) {
 			viewedAt: Date.now(),
 		})
 
-        await collection.updateOne({ _id: ObjectId.createFromHexString(userId) }, { $set: { lastViewedBoards } })
- 
+        // await collection.updateOne({ _id: ObjectId.createFromHexString(userId) }, { $set: { lastViewedBoards } })
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $set: { lastViewedBoards } })
+
 		delete user.password
 		user.lastViewedBoards = lastViewedBoards
         return user
@@ -95,7 +95,7 @@ async function update(viewedBoardId, userId) {
 
 async function add(user) {
 	const defaultAccount = 'acc002'
-    
+        
     try {
 		const userToAdd = {
             account: user.account || defaultAccount,

@@ -3,7 +3,6 @@ import { logger } from '../services/logger.service.js'
 import { asyncLocalStorage } from '../services/als.service.js'
 
 export function requireAuth(req, res, next) {
-	return next()
 	const { loggedinUser } = asyncLocalStorage.getStore()
 	req.loggedinUser = loggedinUser
 
@@ -16,8 +15,6 @@ export function requireAuth(req, res, next) {
 }
 
 export function requireAdmin(req, res, next) {
-		return next()
-
 	const { loggedinUser } = asyncLocalStorage.getStore()
     
 	if (!loggedinUser) return res.status(401).send('Not Authenticated')

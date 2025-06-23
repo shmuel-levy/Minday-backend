@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb'
 
 import { logger } from '../../services/logger.service.js'
 import { dbService } from '../../services/db.service.js'
+import { log } from '../../middlewares/logger.middleware.js'
 
 
 const PAGE_SIZE = 3
@@ -35,28 +36,36 @@ export const boardService = {
 }
 
 async function query(account) {
-    try {
-        const collection = await dbService.getCollection('board')
-        
-        // Debug: try without account filter first
-        const boards = await collection.find({}).toArray()
-        console.log('All boards in DB:', boards.length)
-        
-        return boards
-    } catch (err) {
-        logger.error('cannot find boards', err)
-        throw err
-    }
+	try {
+		const criteria = _buildCriteria(account)
+
+		const collection = await dbService.getCollection('board')
+
+		const boards = await collection.find(criteria)
+			.sort({ pos: 1 }) 
+			.project({ _id: 1, name: 1, isStarred: 1 })
+			.toArray()
+
+		return boards
+
+	} catch (err) {
+		logger.error('cannot find boards', err)
+		throw err
+	}
 }
 
 async function getById(boardId) {
 	try {
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
+		console.log('criteria:', criteria);
 		
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
 		const collection = await dbService.getCollection('board')
 		const board = await collection.findOne(criteria)
+		console.log('board:', board);
+		
 
-		board.createdAt = board._id.getTimestamp()
+		// board.createdAt = board._id.getTimestamp()
 		return board
 	} catch (err) {
 		logger.error(`while finding board ${boardId}`, err)
@@ -70,7 +79,7 @@ async function saveBoards(miniBoards) {
 
 		const bulkOps = miniBoards.map((miniBoard, idx) => ({
 			updateOne: {
-				filter: { _id: ObjectId.createFromHexString(miniBoard._id) },
+				filter: { _id: new ObjectId.createFromTime(miniBoard._id) },
 				update: {
 					$set: {
 						pos: idx,
@@ -92,10 +101,14 @@ async function saveBoards(miniBoards) {
 
 async function remove(boardId, loggedinUser) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
+		console.log('criteria:', criteria);
+		
 
 		const collection = await dbService.getCollection('board')
-		const res = await collection.deleteOne(criteria)
+		const res = await collection.deleteOne({_id: boardId })
+		console.log('res:', res);
+		
 
 		if (res.deletedCount === 0) throw (`cannot find board`)
 
@@ -151,7 +164,8 @@ async function add(board, loggedinUser) {
 async function update(board) {
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(board._id) }
+		// const criteria = { _id: ObjectId.createFromHexString(board._id) }
+		const criteria = { _id: new ObjectId(board._id) }
 
 		const collection = await dbService.getCollection('board')
 		const { _id, ...boardWithoutId } = board
@@ -177,7 +191,8 @@ async function createGroup(group, boardId, isTop, idx, loggedinUser) {
 		createdAt: Date.now()
 	}
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id:boardId }
+const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		if (isTop) {
@@ -204,7 +219,8 @@ async function createGroup(group, boardId, isTop, idx, loggedinUser) {
 
 async function updateGroup(group, boardId, groupId) {	
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $set: { "groups.$[group]": group } }, { arrayFilters: [{ "group.id": groupId }] })
@@ -219,7 +235,8 @@ async function updateGroup(group, boardId, groupId) {
 
 async function removeGroup(groupId, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $pull: { groups: { id: groupId } } })
@@ -244,7 +261,8 @@ async function createColumn(column, boardId, loggedinUser) {
 	}
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 console.log('criteria:', criteria)
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $push: { columns: columnToSave } })
@@ -259,7 +277,8 @@ console.log('criteria:', criteria)
 
 async function updateColumn(column, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $set: { "columns.$[column]": column } }, { arrayFilters: [{ "column.id": column.id }] })
@@ -274,7 +293,8 @@ async function updateColumn(column, boardId) {
 
 async function removeColumn(columnId, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		collection.updateOne(criteria, { $pull: { columns: { id: columnId } } })
@@ -294,7 +314,8 @@ async function createLabel(label, columnId, boardId,loggedinUser) {
 		color: label.color
 	}
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(
@@ -313,7 +334,8 @@ async function createLabel(label, columnId, boardId,loggedinUser) {
 
 async function updateLabel(labelToUpdate, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria,
@@ -336,7 +358,8 @@ async function updateLabel(labelToUpdate, boardId) {
 
 async function removeLabel(labelId, columnId, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria,
@@ -362,7 +385,8 @@ async function createTask(task, boardId, groupId, isTop, loggedinUser) {
 		updates: task.updates
 	}
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		isTop 
@@ -379,7 +403,8 @@ async function createTask(task, boardId, groupId, isTop, loggedinUser) {
 
 async function removeTask(taskId, groupId, boardId) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $pull: { "groups.$[group].tasks": {id: taskId} }},{ arrayFilters: [{ "group.id": groupId }] })
@@ -401,7 +426,8 @@ async function addTaskUpdate(update, boardId, groupId, taskId) {
 	}
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne( criteria, { $push: { "groups.$[group].tasks.$[task].updates": {$each: [updateToSave], $position: 0 }}}, {arrayFilters: [{ "group.id": groupId}, {"task.id": taskId }]}) 
@@ -417,7 +443,8 @@ async function addTaskUpdate(update, boardId, groupId, taskId) {
 async function removeTaskUpdate(updateId, boardId, groupId, taskId, loggedinUser) {
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		const board = await collection.findOne(criteria)
@@ -456,7 +483,8 @@ async function addColumnValue(value, boardId, groupId, taskId, colId) {
 	// console.log('columnValueToSave in add', columnValueToSave)
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne( criteria, { $push: { "groups.$[group].tasks.$[task].columnValues": columnValueToSave }}, 
@@ -478,7 +506,8 @@ async function updateColumnValue(value, boardId, groupId, taskId, colId) {
 		// console.log('columnValueToSave in update', columnValueToSave)
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne( criteria, { $set: { "groups.$[group].tasks.$[task].columnValues.$[columnValue]": columnValueToSave }}, 
@@ -495,7 +524,8 @@ async function updateColumnValue(value, boardId, groupId, taskId, colId) {
 async function removeColumnValue(boardId, groupId, taskId, colId) {
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne( criteria, { $pull: { "groups.$[group].tasks.$[task].columnValues": { colId } }}, 
@@ -511,7 +541,8 @@ async function removeColumnValue(boardId, groupId, taskId, colId) {
 
 async function moveTask(taskId, boardId, fromGroupId, toGroupId, toIndex) {
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 
@@ -543,7 +574,8 @@ async function createLog(logObject, boardId) {
 	console.log(boardId)
 
 	try {
-		const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
+		const criteria = { _id: new ObjectId(boardId) }
 
 		const collection = await dbService.getCollection('board')
 		await collection.updateOne(criteria, { $push: { activities: { $each: [logObject], $position: 0 }} })

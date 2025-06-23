@@ -71,7 +71,13 @@ export async function removeBoard(req, res) {
 	try {
 		const { loggedinUser } = req
 		const { boardId } = req.params
+		console.log('Removing board with ID:', boardId) // Debug line;
+		
 		const miniBoards = await boardService.remove(boardId, loggedinUser)
+		console.log(
+			'Mini boards after removal:', miniBoards ? miniBoards.length : 'No mini boards found'
+		);
+		
 
 		if(miniBoards) {
 			socketService.broadcast({ type:'mini-boards-update', data: miniBoards, userId: loggedinUser._id})
