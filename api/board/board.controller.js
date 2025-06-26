@@ -314,6 +314,33 @@ export async function removeTask(req, res) {
 	}
 }
 
+export async function updateTask(req, res) {
+    const loggedinUser = req.loggedinUser || { 
+        _id: "682d9bdb00f2a05b9a68d06b", 
+        account: "acc001" 
+    }
+    
+    const { boardId, groupId, taskId } = req.params
+    const { task } = req.body
+
+    try {
+        const updatedBoard = await boardService.updateTask(task, boardId, groupId, taskId)
+        
+        if(updatedBoard) {
+            socketService.broadcast({ 
+                type:'board-update', 
+                data: updatedBoard, 
+                userId: loggedinUser._id
+            })
+        }
+
+        res.status(200).json(updatedBoard)
+    } catch (err) {
+        logger.error('Failed to update task', err)
+        res.status(400).send({ err: 'Failed to update task' })
+    }
+}
+
 export async function addTaskUpdate(req, res) {
 	const { loggedinUser, body } = req
 	const { boardId, groupId, taskId } = req.params

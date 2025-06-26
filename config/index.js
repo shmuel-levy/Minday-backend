@@ -1,7 +1,6 @@
 import configProd from './prod.js'
 import configDev from './dev.js'
 
-
 export var config
 
 if (process.env.NODE_ENV === 'production') {
@@ -9,6 +8,6 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   config = configDev
 }
-// config.isGuestMode = true
 
-
+// Enable guest mode for testing
+config.isGuestMode = true

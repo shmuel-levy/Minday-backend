@@ -5,16 +5,13 @@ import { log } from '../../middlewares/logger.middleware.js'
 
 import { getBoards, getBoardById, saveBoards, createBoard, updateBoard, removeBoard, removeGroup, createGroup, updateGroup, createColumn, updateColumn, removeColumn,
     createLog,
-    createTask, removeTask, addTaskUpdate, removeTaskUpdate, addColumnValue, updateColumnValue, removeColumnValue, moveTask, 
+    createTask, removeTask, updateTask, addTaskUpdate, removeTaskUpdate, addColumnValue, updateColumnValue, removeColumnValue, moveTask, 
     createLabel,
     updateLabel,
     removeLabel} from './board.controller.js'
 
 const router = express.Router()
 router.use(log, requireAuth)
-
-// We can add a middleware for the entire router:
-// router.use(requireAuth)
 
 ////// BOARD //////
 router.get('/', getBoards)
@@ -40,9 +37,9 @@ router.put('/:boardId/column/:columnId/label/:labelId',updateLabel )
 router.post('/:boardId/column/:columnId/label', createLabel)
 router.delete('/:boardId/column/:columnId/label/:labelId', removeLabel)
 
-
 ////// TASK //////
 router.post('/:boardId/group/:groupId/task', createTask)
+router.put('/:boardId/group/:groupId/task/:taskId', updateTask)  // This is the route your frontend needs
 router.delete('/:boardId/group/:groupId/task/:taskId', removeTask)
 router.post('/:boardId/group/:groupId/task/:taskId/update', addTaskUpdate)
 router.post('/:boardId/group/:groupId/task/:taskId/update/:updateId', removeTaskUpdate)
@@ -50,7 +47,5 @@ router.put('/:boardId/group/:groupId/task/:taskId/columnValue/:colId', updateCol
 router.post('/:boardId/group/:groupId/task/:taskId/columnValue/:colId', addColumnValue)
 router.delete('/:boardId/group/:groupId/task/:taskId/columnValue/:colId', removeColumnValue)
 router.put('/:boardId/task/:taskId', moveTask)
-
-
 
 export const boardRoutes = router

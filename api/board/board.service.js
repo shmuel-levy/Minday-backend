@@ -21,6 +21,7 @@ export const boardService = {
     updateColumn,
     removeColumn,
     createTask,
+    updateTask,  // Add this line
     removeTask,
     addTaskUpdate,
 	removeTaskUpdate,
@@ -32,7 +33,6 @@ export const boardService = {
 	updateLabel,
 	removeLabel,
 	createLog,
-
 }
 
 async function query(account) {
@@ -415,6 +415,53 @@ async function removeTask(taskId, groupId, boardId) {
 		logger.error(`cannot remove task ${taskId}`, err)
 		throw err
 	}
+}
+
+async function updateTask(task, boardId, groupId, taskId) {
+    try {
+        const criteria = { _id: new ObjectId(boardId) }
+        const collection = await dbService.getCollection('board')
+        
+        // First, let's find the board and validate the task exists
+        const board = await collection.findOne(criteria)
+        if (!board) throw new Error('Board not found')
+        
+        const group = board.groups.find(g => g.id === groupId)
+        if (!group) throw new Error('Group not found')
+        
+        const existingTaskIndex = group.tasks.findIndex(t => t.id === taskId)
+        if (existingTaskIndex === -1) throw new Error('Task not found')
+        
+        // Merge the updated task with existing task data
+        const updatedTask = {
+            ...group.tasks[existingTaskIndex],
+            ...task,
+            id: taskId, // Ensure ID doesn't change
+            updatedAt: Date.now()
+        }
+        
+        // Update the task in the database
+        await collection.updateOne(
+            criteria,
+            { 
+                $set: { 
+                    "groups.$[group].tasks.$[task]": updatedTask 
+                } 
+            },
+            { 
+                arrayFilters: [
+                    { "group.id": groupId }, 
+                    { "task.id": taskId }
+                ] 
+            }
+        )
+
+        const updatedBoard = await collection.findOne(criteria)
+        return updatedBoard
+    } catch (err) {
+        logger.error(`cannot update task ${taskId}`, err)
+        throw err
+    }
 }
 
 async function addTaskUpdate(update, boardId, groupId, taskId) {
