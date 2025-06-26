@@ -21,7 +21,7 @@ export const boardService = {
     updateColumn,
     removeColumn,
     createTask,
-    updateTask,  // Add this line
+    updateTask,  
     removeTask,
     addTaskUpdate,
 	removeTaskUpdate,
@@ -43,7 +43,12 @@ async function query(account) {
 
 		const boards = await collection.find(criteria)
 			.sort({ pos: 1 }) 
-			.project({ _id: 1, name: 1, isStarred: 1 })
+			.project({ 
+				_id: 1, 
+				name: 1, 
+				title: '$name', 
+				isStarred: 1 
+			})
 			.toArray()
 
 		return boards
