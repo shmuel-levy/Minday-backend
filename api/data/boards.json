@@ -1,6 +1,5 @@
 [
   {
-    "_id": "677d9a1b2f8c4e5a6b7c8d9e",
     "name": "Minday Project",
     "title": "Minday Project",
     "createdAt": 1736265755536,
@@ -313,7 +312,6 @@
     ]
   },
   {
-    "_id": "677d9a1b2f8c4e5a6b7c8d9f",
     "name": "Home Maintenance",
     "title": "Home Maintenance", 
     "createdAt": 1736265755536,
@@ -479,7 +477,6 @@
     ]
   },
   {
-    "_id": "677d9a1b2f8c4e5a6b7c8da0",
     "name": "Party Planner",
     "title": "Party Planner",
     "createdAt": 1736265755536,
