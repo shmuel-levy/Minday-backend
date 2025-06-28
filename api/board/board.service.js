@@ -84,7 +84,7 @@ async function saveBoards(miniBoards) {
 
 		const bulkOps = miniBoards.map((miniBoard, idx) => ({
 			updateOne: {
-				filter: { _id: new ObjectId.createFromTime(miniBoard._id) },
+				filter: { _id: new ObjectId(miniBoard._id) },
 				update: {
 					$set: {
 						pos: idx,
@@ -641,6 +641,11 @@ async function createLog(logObject, boardId) {
 }
 
 function _buildCriteria(filterBy) {
+	// If no filterBy or empty account, return empty criteria to show all boards
+	if (!filterBy || !filterBy.trim()) {
+		return {}
+	}
+	
 	const criteria = {
 		account: { $regex: filterBy, $options: 'i' },
 	}
