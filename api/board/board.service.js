@@ -63,6 +63,8 @@ async function getById(boardId) {
 	try {
 		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
 		const criteria = { _id: new ObjectId(boardId) }
+		console.log('getById criteria:', criteria);
+		
 		console.log('criteria:', criteria);
 		
 		const collection = await dbService.getCollection('board')
@@ -108,10 +110,14 @@ async function remove(boardId, loggedinUser) {
 	try {
 		const criteria = { _id: new ObjectId(boardId) }
 		console.log('criteria:', criteria);
+
+		console.log(criteria, 'criteria in remove');
+		
+
 		
 
 		const collection = await dbService.getCollection('board')
-		const res = await collection.deleteOne({_id: boardId })
+		const res = await collection.deleteOne(criteria)
 		console.log('res:', res);
 		
 
