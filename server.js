@@ -42,6 +42,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/board', boardRoutes)
 
+app.get('/api/ping', (req, res) => res.send('pong'))
+
 setupSocketAPI(server)
 
 // Make every unhandled server-side-route match index.html

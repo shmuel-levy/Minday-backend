@@ -1,5 +1,6 @@
 import {logger} from './logger.service.js'
 import {Server} from 'socket.io'
+import { boardService } from '../api/board/board.service.js'
 
 var gIo = null
 
@@ -13,6 +14,16 @@ export function setupSocketAPI(http) {
         logger.info(`New connected socket [id: ${socket.id}]`)
         socket.on('disconnect', socket => {
             logger.info(`Socket disconnected [id: ${socket.id}]`)
+        })
+        socket.on('board-set-topic', topic => {
+            if (socket.myTopic === topic) return
+            if (socket.myTopic) {
+                socket.leave(socket.myTopic)
+                logger.info(`Socket is leaving topic ${socket.myTopic} [id: ${socket.id}]`)
+            }
+            socket.join(topic)
+            socket.myTopic = topic
+            logger.info(`Socket is joining topic ${topic} [id: ${socket.id}]`)
         })
         socket.on('chat-set-topic', topic => {
             if (socket.myTopic === topic) return
@@ -29,6 +40,20 @@ export function setupSocketAPI(http) {
             // gIo.emit('chat addMsg', msg)
             // emits only to sockets in the same room
             gIo.to(socket.myTopic).emit('chat-add-msg', msg)
+        })
+        socket.on('task-add-update', async update => {
+            logger.info(`New task update from socket [id: ${socket.id}], for board ${update.boardId}`)
+            
+            try {
+                const savedUpdate = await boardService.addTaskUpdate(update, update.boardId, update.groupId, update.taskId)
+                
+                // Emit to all clients in the board room, including the sender
+                gIo.to(update.boardId).emit('task-add-update', savedUpdate)
+            } catch (err) {
+                logger.error(`Failed to add task update for board ${update.boardId}`, err)
+                // Optionally, emit an error back to the sender
+                socket.emit('task-update-error', { error: 'Could not save update' })
+            }
         })
         socket.on('user-watch', userId => {
             logger.info(`user-watch from socket [id: ${socket.id}], on user ${userId}`)
