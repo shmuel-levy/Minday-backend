@@ -37,18 +37,20 @@ export const boardService = {
 
 async function query(account) {
 	try {
+		console.log('query account:', account);
 		const criteria = _buildCriteria(account)
+		console.log('query criteria:', criteria);
 
 		const collection = await dbService.getCollection('board')
-
+//
 		const boards = await collection.find(criteria)
 			.sort({ pos: 1 }) 
-			.project({ 
-				_id: 1, 
-				name: 1, 
-				title: '$name', 
-				isStarred: 1 
-			})
+			// .project({ 
+			// 	_id: 1, 
+			// 	name: 1, 
+			// 	title: '$name', 
+			// 	isStarred: 1 
+			// })
 			.toArray()
 
 		return boards
