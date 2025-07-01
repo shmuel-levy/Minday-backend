@@ -111,18 +111,15 @@ async function saveBoards(miniBoards) {
 async function remove(boardId, loggedinUser) {
 	try {
 		const criteria = { _id: new ObjectId(boardId) }
-		console.log('criteria:', criteria);
-
-		console.log(criteria, 'criteria in remove');
-		
-
-		
-
 		const collection = await dbService.getCollection('board')
-		const res = await collection.deleteOne(criteria)
-		console.log('res:', res);
-		
 
+		const board = await collection.findOne(criteria)
+		if (!board) throw new Error('Board not found')
+		if (board.isDemo && !loggedinUser.isAdmin) {
+			throw new Error('Only admins can remove demo data')
+		}
+
+		const res = await collection.deleteOne(criteria)
 		if (res.deletedCount === 0) throw (`cannot find board`)
 
 		//reindex
@@ -174,16 +171,17 @@ async function add(board, loggedinUser) {
 	}
 }
 
-async function update(board) {
-
+async function update(board, loggedinUser) {
 	try {
-		// const criteria = { _id: ObjectId.createFromHexString(board._id) }
 		const criteria = { _id: new ObjectId(board._id) }
-
 		const collection = await dbService.getCollection('board')
+		const dbBoard = await collection.findOne(criteria)
+		if (!dbBoard) throw new Error('Board not found')
+		if (dbBoard.isDemo && !loggedinUser.isAdmin) {
+			throw new Error('Only admins can edit demo data')
+		}
 		const { _id, ...boardWithoutId } = board
 		await collection.updateOne(criteria, { $set: boardWithoutId })
-		
 		const updatedBoard = await collection.findOne(criteria)
 		return updatedBoard
 	} catch (err) {
@@ -230,14 +228,18 @@ const criteria = { _id: new ObjectId(boardId) }
 	}
 }
 
-async function updateGroup(group, boardId, groupId) {	
+async function updateGroup(group, boardId, groupId, loggedinUser) {
 	try {
-		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
 		const criteria = { _id: new ObjectId(boardId) }
-
 		const collection = await dbService.getCollection('board')
+		const board = await collection.findOne(criteria)
+		if (!board) throw new Error('Board not found')
+		const dbGroup = board.groups.find(g => g.id === groupId)
+		if (!dbGroup) throw new Error('Group not found')
+		if ((dbGroup.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
+			throw new Error('Only admins can edit demo data')
+		}
 		await collection.updateOne(criteria, { $set: { "groups.$[group]": group } }, { arrayFilters: [{ "group.id": groupId }] })
-
 		const updatedBoard = await collection.findOne(criteria)
 		return updatedBoard
 	} catch (err) {
@@ -246,12 +248,20 @@ async function updateGroup(group, boardId, groupId) {
 	}
 }
 
-async function removeGroup(groupId, boardId) {
+async function removeGroup(groupId, boardId, loggedinUser) {
 	try {
-		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
 		const criteria = { _id: new ObjectId(boardId) }
-
 		const collection = await dbService.getCollection('board')
+
+		const board = await collection.findOne(criteria)
+		if (!board) throw new Error('Board not found')
+		const group = board.groups.find(g => g.id === groupId)
+		if (!group) throw new Error('Group not found')
+
+		if ((group.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
+			throw new Error('Only admins can remove demo data')
+		}
+
 		await collection.updateOne(criteria, { $pull: { groups: { id: groupId } } })
 
 		const updatedBoard = await collection.findOne(criteria)
@@ -414,12 +424,23 @@ async function createTask(task, boardId, groupId, isTop, loggedinUser) {
 	}
 }
 
-async function removeTask(taskId, groupId, boardId) {
+async function removeTask(taskId, groupId, boardId, loggedinUser) {
 	try {
-		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
 		const criteria = { _id: new ObjectId(boardId) }
-
 		const collection = await dbService.getCollection('board')
+
+		const board = await collection.findOne(criteria)
+		if (!board) throw new Error('Board not found')
+		const group = board.groups.find(g => g.id === groupId)
+		if (!group) throw new Error('Group not found')
+		const task = group.tasks.find(t => t.id === taskId)
+		if (!task) throw new Error('Task not found')
+
+		// Check for demo data protection
+		if ((task.isDemo || group.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
+			throw new Error('Only admins can remove demo data')
+		}
+
 		await collection.updateOne(criteria, { $pull: { "groups.$[group].tasks": {id: taskId} }},{ arrayFilters: [{ "group.id": groupId }] })
 
 		const updatedBoard = await collection.findOne(criteria)
@@ -430,30 +451,25 @@ async function removeTask(taskId, groupId, boardId) {
 	}
 }
 
-async function updateTask(task, boardId, groupId, taskId) {
+async function updateTask(task, boardId, groupId, taskId, loggedinUser) {
     try {
         const criteria = { _id: new ObjectId(boardId) }
         const collection = await dbService.getCollection('board')
-        
-        // First, let's find the board and validate the task exists
         const board = await collection.findOne(criteria)
         if (!board) throw new Error('Board not found')
-        
         const group = board.groups.find(g => g.id === groupId)
         if (!group) throw new Error('Group not found')
-        
         const existingTaskIndex = group.tasks.findIndex(t => t.id === taskId)
         if (existingTaskIndex === -1) throw new Error('Task not found')
-        
-        // Merge the updated task with existing task data
+        if ((group.tasks[existingTaskIndex].isDemo || group.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
+            throw new Error('Only admins can edit demo data')
+        }
         const updatedTask = {
             ...group.tasks[existingTaskIndex],
             ...task,
             id: taskId, // Ensure ID doesn't change
             updatedAt: Date.now()
         }
-        
-        // Update the task in the database
         await collection.updateOne(
             criteria,
             { 
@@ -468,7 +484,6 @@ async function updateTask(task, boardId, groupId, taskId) {
                 ] 
             }
         )
-
         const updatedBoard = await collection.findOne(criteria)
         return updatedBoard
     } catch (err) {
