@@ -115,9 +115,9 @@ async function remove(boardId, loggedinUser) {
 
 		const board = await collection.findOne(criteria)
 		if (!board) throw new Error('Board not found')
-		if (board.isDemo && !loggedinUser.isAdmin) {
-			throw new Error('Only admins can remove demo data')
-		}
+		// if (board.isDemo && !loggedinUser.isAdmin) {
+		// 	throw new Error('Only admins can remove demo data')
+		// }
 
 		const res = await collection.deleteOne(criteria)
 		if (res.deletedCount === 0) throw (`cannot find board`)
@@ -177,9 +177,9 @@ async function update(board, loggedinUser) {
 		const collection = await dbService.getCollection('board')
 		const dbBoard = await collection.findOne(criteria)
 		if (!dbBoard) throw new Error('Board not found')
-		if (dbBoard.isDemo && !loggedinUser.isAdmin) {
-			throw new Error('Only admins can edit demo data')
-		}
+		// if (dbBoard.isDemo && !loggedinUser.isAdmin) {
+		// 	throw new Error('Only admins can edit demo data')
+		// }
 		const { _id, ...boardWithoutId } = board
 		await collection.updateOne(criteria, { $set: boardWithoutId })
 		const updatedBoard = await collection.findOne(criteria)
@@ -461,9 +461,9 @@ async function updateTask(task, boardId, groupId, taskId, loggedinUser) {
         if (!group) throw new Error('Group not found')
         const existingTaskIndex = group.tasks.findIndex(t => t.id === taskId)
         if (existingTaskIndex === -1) throw new Error('Task not found')
-        if ((group.tasks[existingTaskIndex].isDemo || group.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
-            throw new Error('Only admins can edit demo data')
-        }
+        // if ((group.tasks[existingTaskIndex].isDemo || group.isDemo || board.isDemo) && !loggedinUser.isAdmin) {
+        //     throw new Error('Only admins can edit demo data')
+        // }
         const updatedTask = {
             ...group.tasks[existingTaskIndex],
             ...task,
