@@ -91,22 +91,20 @@ export async function removeBoard(req, res) {
 }
 
 export async function updateBoard(req, res) {
-    // Mock user for testing
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
         account: "acc001" 
     }
-    
     const board = req.body
-
     try {
-        const updatedBoard = await boardService.update(board)
+        const updatedBoard = await boardService.update(board, loggedinUser)
         res.status(200).json(updatedBoard)
     } catch (err) {
         logger.error('Failed to update board', err)
         res.status(400).send({ err: 'Failed to update board' })
     }
 }
+
 export async function createGroup(req, res) {
     // Mock user for testing
     const loggedinUser = req.loggedinUser || { 
@@ -134,7 +132,7 @@ export async function updateGroup(req, res) {
     // const { userId: _id, isAdmin } = loggedinUser
 
 	try {
-		const updatedBoard = await boardService.updateGroup(group, boardId, groupId)
+		const updatedBoard = await boardService.updateGroup(group, boardId, groupId, loggedinUser)
 
 		if(updatedBoard) {
 			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
@@ -301,7 +299,7 @@ export async function removeTask(req, res) {
 	try {
 		const { loggedinUser } = req
 		const { boardId, groupId, taskId } = req.params
-		const updatedBoard = await boardService.removeTask(taskId, groupId, boardId)
+		const updatedBoard = await boardService.removeTask(taskId, groupId, boardId, loggedinUser)
 
 		if(updatedBoard) {
 			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
@@ -319,13 +317,10 @@ export async function updateTask(req, res) {
         _id: "682d9bdb00f2a05b9a68d06b", 
         account: "acc001" 
     }
-    
     const { boardId, groupId, taskId } = req.params
     const { task } = req.body
-
     try {
-        const updatedBoard = await boardService.updateTask(task, boardId, groupId, taskId)
-        
+        const updatedBoard = await boardService.updateTask(task, boardId, groupId, taskId, loggedinUser)
         if(updatedBoard) {
             socketService.broadcast({ 
                 type:'board-update', 
@@ -333,7 +328,6 @@ export async function updateTask(req, res) {
                 userId: loggedinUser._id
             })
         }
-
         res.status(200).json(updatedBoard)
     } catch (err) {
         logger.error('Failed to update task', err)
