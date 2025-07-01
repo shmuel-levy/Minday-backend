@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { requireAuth } from '../../middlewares/requireAuth.middleware.js'
+import { requireAuth, requireAdmin } from '../../middlewares/requireAuth.middleware.js'
 import { log } from '../../middlewares/logger.middleware.js'
 
 import { getBoards, getBoardById, saveBoards, createBoard, updateBoard, removeBoard, removeGroup, createGroup, updateGroup, createColumn, updateColumn, removeColumn,
@@ -17,15 +17,15 @@ router.use(log, requireAuth)
 router.get('/', getBoards)
 router.get('/:boardId', getBoardById)
 router.post('/', createBoard)
-router.put('/:boardId', updateBoard)
+router.put('/:boardId', requireAdmin, updateBoard)
 router.put('/boards/reorder', saveBoards)
-router.delete('/:boardId', removeBoard)
+router.delete('/:boardId', requireAdmin, removeBoard)
 router.put('/:boardId/log', createLog)
 
 ////// GROUP //////
 router.post('/:boardId/group', createGroup)
-router.put('/:boardId/group/:groupId', updateGroup)
-router.delete('/:boardId/group/:groupId', removeGroup)
+router.put('/:boardId/group/:groupId', requireAdmin, updateGroup)
+router.delete('/:boardId/group/:groupId', requireAdmin, removeGroup)
 
 ////// COLUMN //////
 router.post('/:boardId/column', createColumn)
@@ -39,8 +39,8 @@ router.delete('/:boardId/column/:columnId/label/:labelId', removeLabel)
 
 ////// TASK //////
 router.post('/:boardId/group/:groupId/task', createTask)
-router.put('/:boardId/group/:groupId/task/:taskId', updateTask)  // This is the route your frontend needs
-router.delete('/:boardId/group/:groupId/task/:taskId', removeTask)
+router.put('/:boardId/group/:groupId/task/:taskId', requireAdmin, updateTask)
+router.delete('/:boardId/group/:groupId/task/:taskId', requireAdmin, removeTask)
 router.post('/:boardId/group/:groupId/task/:taskId/update', addTaskUpdate)
 router.post('/:boardId/group/:groupId/task/:taskId/update/:updateId', removeTaskUpdate)
 router.put('/:boardId/group/:groupId/task/:taskId/columnValue/:colId', updateColumnValue)
