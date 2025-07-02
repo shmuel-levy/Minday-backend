@@ -19,6 +19,8 @@ const server = http.createServer(app)
 app.use(cookieParser())
 app.use(express.json())
 
+console.log('NODE_ENV:', process.env.NODE_ENV)
+
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve('public')))
 } else {
