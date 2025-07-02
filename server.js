@@ -19,25 +19,27 @@ const server = http.createServer(app)
 app.use(cookieParser())
 app.use(express.json())
 
-const corsOptions = {
-    origin: [
-        'http://127.0.0.1:3000',
-        'http://localhost:3000',
-        'http://127.0.0.1:5173',
-        'http://localhost:5173',
-        'http://127.0.0.1:5174',
-        'http://localhost:5174',
-        'http://127.0.0.1:5175',
-        'http://localhost:5175',
-        'https://minday.onrender.com' 
-    ],
-    credentials: true
-}
-
-app.use(cors(corsOptions))
-
 if (process.env.NODE_ENV === 'production') {
+    app.use(cors({
+        origin: 'https://minday.onrender.com',
+        credentials: true
+    }))
     app.use(express.static(path.resolve('public')))
+} else {
+    const corsOptions = {
+        origin: [
+            'http://127.0.0.1:3000',
+            'http://localhost:3000',
+            'http://127.0.0.1:5173',
+            'http://localhost:5173',
+            'http://127.0.0.1:5174',
+            'http://localhost:5174',
+            'http://127.0.0.1:5175',
+            'http://localhost:5175'
+        ],
+        credentials: true
+    }
+    app.use(cors(corsOptions))
 }
 app.all('*all', setupAsyncLocalStorage)
 
