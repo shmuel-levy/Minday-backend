@@ -11,7 +11,7 @@ import { getBoards, getBoardById, saveBoards, createBoard, updateBoard, removeBo
     removeLabel} from './board.controller.js'
 
 const router = express.Router()
-router.use(log, requireAuth)
+// router.use(log)
 
 ////// BOARD //////
 router.get('/', getBoards)
