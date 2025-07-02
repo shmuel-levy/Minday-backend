@@ -361,9 +361,9 @@ export async function removeTaskUpdate(req, res) {
 	try {
 		const updatedBoard = await boardService.removeTaskUpdate(updateId, boardId, groupId, taskId, loggedinUser)
 
-		if(updatedBoard) {
-			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
-		}
+		// if(updatedBoard) {
+		// 	socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser?._id})
+		// }
 
 		res.status(200).json(updatedBoard)
 	} catch (err) {

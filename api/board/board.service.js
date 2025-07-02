@@ -516,6 +516,7 @@ async function addTaskUpdate(update, boardId, groupId, taskId) {
 }
 
 async function removeTaskUpdate(updateId, boardId, groupId, taskId, loggedinUser) {
+	console.log(loggedinUser,' loggedinUser in removeTaskUpdate');
 
 	try {
 		// const criteria = { _id: ObjectId.createFromHexString(boardId) }
@@ -538,15 +539,16 @@ async function removeTaskUpdate(updateId, boardId, groupId, taskId, loggedinUser
 		if (!updateOwnerId && update.byMember && update.byMember._id) {
 			updateOwnerId = update.byMember._id;
 		}
-		console.log('[DEBUG] loggedinUser._id:', loggedinUser._id);
+		console.log('[DEBUG] loggedinUser._id:', loggedinUser?._id);
 		console.log('[DEBUG] updateOwnerId:', updateOwnerId);
 
 		if (!updateOwnerId) {
 			// Allow deletion if owner is missing (legacy update)
 			console.log('[DEBUG] Update has no owner field, allowing deletion.');
-		} else if (updateOwnerId.toString() !== loggedinUser._id.toString()) {
-			throw new Error('Unauthorized: Cannot delete someone else\'s update')
-		}
+		} 
+		// else if (updateOwnerId.toString() !== loggedinUser?._id.toString()) {
+		// 	throw new Error('Unauthorized: Cannot delete someone else\'s update')
+		// }
 
 		
 		await collection.updateOne( criteria, { $pull: { "groups.$[group].tasks.$[task].updates": {id: updateId}}}, {arrayFilters: [{ "group.id": groupId}, {"task.id": taskId }]}) 
