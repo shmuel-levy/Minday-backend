@@ -5,7 +5,7 @@ import { boardService } from './board.service.js'
 export async function getBoards(req, res) {
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     
     const account = loggedinUser?.account || ''
