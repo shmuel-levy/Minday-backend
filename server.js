@@ -61,6 +61,20 @@ app.get('/*all', (req, res) => {
 import { logger } from './services/logger.service.js'
 
 const desiredPort = process.env.PORT || 3030;
+app.get('/wake-up', (req, res) => {
+    console.log('Service is awake and working');
+    res.send('Service is awake and working');
+});
+
+// Wake-up task to keep the service active
+cron.schedule('*/13 * * * *', async () => {
+    try {
+        console.log('Wake-up task running');
+              await axios.get(`https://minday.onrender.com/wake-up`);
+          } catch (error) {
+        console.error('Error during wake-up task:', error);
+    }
+});
 const port = await detect(desiredPort === 3030 ? 3030 : Number(desiredPort));
 
 server.listen(port, () => {
