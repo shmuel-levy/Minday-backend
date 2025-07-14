@@ -33,6 +33,7 @@ export const boardService = {
 	updateLabel,
 	removeLabel,
 	createLog,
+	saveDashboardWidgets,
 }
 
 async function query(account) {
@@ -671,6 +672,26 @@ async function createLog(logObject, boardId) {
 		return updatedBoard
 	} catch (err) {
 		logger.error(`cannot log activity ${logObject.id}`, err)
+		throw err
+	}
+}
+
+async function saveDashboardWidgets(boardId, dashboardWidgets) {
+	try {
+		const criteria = { _id: new ObjectId(boardId) }
+		const collection = await dbService.getCollection('board')
+		
+		// Check if board exists
+		const board = await collection.findOne(criteria)
+		if (!board) throw new Error('Board not found')
+		
+		// Update the dashboard widgets
+		await collection.updateOne(criteria, { $set: { dashboardWidgets: dashboardWidgets } })
+		
+		const updatedBoard = await collection.findOne(criteria)
+		return updatedBoard
+	} catch (err) {
+		logger.error(`cannot save dashboard widgets for board ${boardId}`, err)
 		throw err
 	}
 }

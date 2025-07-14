@@ -471,3 +471,29 @@ export async function createLog(req, res) {
 		res.status(400).send({ err: 'Failed to log activity' })
 	}
 }
+
+export async function saveDashboardWidgets(req, res) {
+	try {
+		// Mock user for testing - same as other functions
+		const loggedinUser = req.loggedinUser || { 
+			_id: "682d9bdb00f2a05b9a68d06b", 
+			account: "acc002" 
+		}
+		const { boardId } = req.params
+		const { dashboardWidgets } = req.body
+		
+		console.log('Saving dashboard widgets for board:', boardId)
+		console.log('Dashboard widgets:', dashboardWidgets)
+		
+		const updatedBoard = await boardService.saveDashboardWidgets(boardId, dashboardWidgets)
+		
+		if(updatedBoard) {
+			socketService.broadcast({ type:'board-update', data: updatedBoard, userId: loggedinUser._id})
+		}
+
+		res.status(200).json(updatedBoard)
+	} catch (err) {
+		logger.error('Failed to save dashboard widgets', err)
+		res.status(400).send({ err: 'Failed to save dashboard widgets' })
+	}
+}

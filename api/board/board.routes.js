@@ -8,7 +8,8 @@ import { getBoards, getBoardById, saveBoards, createBoard, updateBoard, removeBo
     createTask, removeTask, updateTask, addTaskUpdate, removeTaskUpdate, addColumnValue, updateColumnValue, removeColumnValue, moveTask, 
     createLabel,
     updateLabel,
-    removeLabel} from './board.controller.js'
+    removeLabel,
+    saveDashboardWidgets} from './board.controller.js'
 
 const router = express.Router()
 // router.use(log)
@@ -21,6 +22,7 @@ router.put('/:boardId',  updateBoard)
 router.put('/boards/reorder', saveBoards)
 router.delete('/:boardId',  removeBoard)
 router.put('/:boardId/log', createLog)
+router.put('/:boardId/dashboard-widgets', saveDashboardWidgets)
 
 ////// GROUP //////
 router.post('/:boardId/group', createGroup)
