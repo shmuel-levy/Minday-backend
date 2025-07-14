@@ -54,7 +54,7 @@ export async function createBoard(req, res) {
     // Mock user for testing when auth is disabled
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     
     const board = req.body
@@ -69,7 +69,11 @@ export async function createBoard(req, res) {
 
 export async function removeBoard(req, res) {
 	try {
-		const { loggedinUser } = req
+		// Mock user for testing - same as other functions
+		const loggedinUser = req.loggedinUser || { 
+			_id: "682d9bdb00f2a05b9a68d06b", 
+			account: "acc002" 
+		}
 		const { boardId } = req.params
 		console.log('Removing board with ID:', boardId) // Debug line;
 		
@@ -93,7 +97,7 @@ export async function removeBoard(req, res) {
 export async function updateBoard(req, res) {
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     const board = req.body
     try {
@@ -109,7 +113,7 @@ export async function createGroup(req, res) {
     // Mock user for testing
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     
     const { boardId } = req.params
@@ -279,7 +283,7 @@ export async function createTask(req, res) {
     // Mock user for testing
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     
     const { boardId, groupId } = req.params
@@ -315,7 +319,7 @@ export async function removeTask(req, res) {
 export async function updateTask(req, res) {
     const loggedinUser = req.loggedinUser || { 
         _id: "682d9bdb00f2a05b9a68d06b", 
-        account: "acc001" 
+        account: "acc002" 
     }
     const { boardId, groupId, taskId } = req.params
     const { task } = req.body
